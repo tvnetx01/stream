@@ -71,8 +71,6 @@
 </head>
 <body>
 
-<header>Live Streams (AUTO Refresh + LIVE Badge)</header>
-
 <div class="topbar">
     <input type="text" id="search" placeholder="Cari stream...">
     <select id="filter">
@@ -195,8 +193,10 @@ async function fetchDirectStream(id) {
         }
 
         // Redirect ke halaman player
-        window.location.href =
-            "https://vidio2.pages.dev/url?id=" + encodeURIComponent(direct);
+        // 🔥 Redirect ke vidio3.pages.dev
+        const finalUrl = "https://vidio2.pages.dev/URL?id=" + encodeURIComponent(direct);
+
+        window.location.href = finalUrl;
 
     } catch (err) {
         console.error(err);
