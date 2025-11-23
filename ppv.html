@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Live Streams Direct</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+    body { margin:0; font-family:Arial; background:#111; color:#fff; }
+    header { padding:15px; background:#222; text-align:center; font-size:22px; }
+
+    .topbar {
+        display:flex;
+        gap:10px;
+        padding:10px 15px;
+        background:#1b1b1b;
+        position:sticky;
+        top:0;
+        z-index:5;
+    }
+
+    input, select {
+        padding:8px;
+        border-radius:5px;
+        border:none;
+        font-size:14px;
+    }
+    input { flex:1; }
+
+    .container { padding:15px; }
+
+    .stream-list {
+        display:grid;
+        grid-template-columns:repeat(auto-fill, minmax(170px,1fr));
+        gap:15px;
+        margin-top:20px;
+    }
+
+    .stream {
+        background:#1c1c1c;
+        padding:10px;
+        border-radius:8px;
+        cursor:pointer;
+        transition:0.2s;
+        position:relative;
+    }
+
+    .stream:hover { background:#333; }
+
+    .stream img {
+        width:100%;
+        border-radius:6px;
+    }
+
+    .time { font-size:12px; opacity:.7; margin-top:5px; }
+
+    /* LIVE BADGE */
+    .live-badge {
+        position:absolute;
+        top:8px;
+        left:8px;
+        background:red;
+        padding:2px 6px;
+        font-size:11px;
+        border-radius:4px;
+        font-weight:bold;
+    }
+
+</style>
+  <script type='text/javascript' src='//pl27364347.revenuecpmgate.com/43/6d/57/436d57638d6f3b298f07f4242ce6eab7.js'></script>
+
+</head>
+<body>
+
+<header>Live Streams (AUTO Refresh + LIVE Badge)</header>
+
+<div class="topbar">
+    <input type="text" id="search" placeholder="Cari stream...">
+    <select id="filter">
+        <option value="all">Semua</option>
+        <option value="live">LIVE</option>
+        <option value="upcoming">Upcoming</option>
+    </select>
+</div>
+
+<div class="container" id="content">Memuat...</div>
+
+<script>
+let ALL_STREAMS = [];
+
+async function loadStreams(showLoading = false) {
+    const url = "https://ppv.to/api/streams";
+
+    if (showLoading) {
+        document.getElementById("content").innerHTML = "Memuat ulang...";
+    }
+
+    try {
+        const res = await fetch(url, { cache: "no-store" });
+        const data = await res.json();
+
+        ALL_STREAMS = [];
+
+        data.streams.forEach(category => {
+            category.streams.forEach(item => {
+                ALL_STREAMS.push({
+                    id: item.id,
+                    name: item.name,
+                    poster: item.poster,
+                    tag: item.tag,
+                    category: category.category,
+                    starts_at: item.starts_at,
+                    ends_at: item.ends_at,
+                    viewers: item.viewers
+                });
+            });
+        });
+
+        // Sort by nearest start time
+        ALL_STREAMS.sort((a, b) => a.starts_at - b.starts_at);
+
+        renderStreams();
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById("content").innerHTML =
+            `<p style="color:red">Gagal memuat API.</p>`;
+    }
+}
+
+function renderStreams() {
+    const container = document.getElementById("content");
+    container.innerHTML = "";
+
+    const list = document.createElement("div");
+    list.className = "stream-list";
+
+    const searchText = document.getElementById("search").value.toLowerCase();
+    const filter = document.getElementById("filter").value;
+
+    const now = Date.now() / 1000;
+
+    const filtered = ALL_STREAMS.filter(item => {
+        let matchText =
+            item.name.toLowerCase().includes(searchText) ||
+            item.tag.toLowerCase().includes(searchText) ||
+            item.category.toLowerCase().includes(searchText);
+
+        let matchFilter = true;
+
+        if (filter === "live") {
+            matchFilter = (now >= item.starts_at && now <= item.ends_at);
+        }
+        if (filter === "upcoming") {
+            matchFilter = (now < item.starts_at);
+        }
+
+        return matchText && matchFilter;
+    });
+
+    filtered.forEach(item => {
+        const timeStr = new Date(item.starts_at * 1000).toLocaleString();
+        const isLive = now >= item.starts_at && now <= item.ends_at;
+
+        const card = document.createElement("div");
+        card.className = "stream";
+
+        card.innerHTML = `
+            ${isLive ? `<div class="live-badge">LIVE</div>` : ""}
+            <img src="${item.poster}">
+            <div style="margin-top:8px; font-size:14px;">${item.name}</div>
+            <div class="time">${timeStr}</div>
+            <div style="opacity:0.6; font-size:12px;">Viewers: ${item.viewers}</div>
+        `;
+
+        card.onclick = () => fetchDirectStream(item.id);
+
+        list.appendChild(card);
+    });
+
+    container.appendChild(list);
+}
+
+async function fetchDirectStream(id) {
+    const api = `https://ppv.to/api/streams/${id}`;
+
+    try {
+        const res = await fetch(api, { cache: "no-store" });
+        const json = await res.json();
+
+        const direct = json.data?.sources?.[0]?.data || json.data.iframe;
+
+        if (!direct) {
+            alert("Direct stream tidak ditemukan.");
+            return;
+        }
+
+        // Redirect ke halaman player
+        window.location.href =
+            "https://vidio2.pages.dev/url?id=" + encodeURIComponent(direct);
+
+    } catch (err) {
+        console.error(err);
+        alert("Gagal mengambil direct stream.");
+    }
+}
+
+// 🔥 Auto-refresh setiap 30 detik
+setInterval(() => {
+    loadStreams(false);
+}, 30000);
+
+document.getElementById("search").oninput = renderStreams;
+document.getElementById("filter").onchange = renderStreams;
+
+loadStreams(true);
+</script>
+
+</body>
+</html>
