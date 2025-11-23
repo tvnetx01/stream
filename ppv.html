@@ -196,7 +196,7 @@ async function fetchDirectStream(id) {
         // 🔥 Redirect ke vidio3.pages.dev
         const finalUrl = "https://vidio2.pages.dev/URL?id=" + encodeURIComponent(direct);
 
-        window.open = finalUrl;
+        window.open(finalUrl, "_blank");
 
     } catch (err) {
         console.error(err);
