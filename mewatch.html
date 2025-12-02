@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EPG MeWatch - Jadwal Live</title>
+
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: system-ui, sans-serif;
+    background: #0d0d0d;
+    color: #f2f2f2;
+  }
+
+  header {
+    background: #111;
+    padding: 15px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: #00c8ff;
+    border-bottom: 1px solid #222;
+  }
+
+  .container {
+    padding: 15px;
+    max-width: 850px;
+    margin: auto;
+  }
+
+  .card {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+    border: 1px solid #222;
+    transition: 0.2s;
+    cursor: pointer;
+  }
+
+  .card:hover {
+    border-color: #00c8ff;
+    transform: scale(1.01);
+    background: #1f1f1f;
+  }
+
+  .title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: #bbb;
+    margin-bottom: 6px;
+  }
+
+  .live {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: red;
+    font-size: 12px;
+    margin-left: 6px;
+  }
+
+  .info-row {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #ccc;
+  }
+</style>
+
+</head>
+<body>
+
+<header>EPG MeWatch – Jadwal Siaran Hari Ini</header>
+
+<div class="container" id="list"></div>
+<script>
+async function loadEPG() {
+  // generate tanggal otomatis format YYYYMMDD
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  const autoDate = `${yyyy}${mm}${dd}`;
+
+  // URL otomatis
+  const url = `https://apicollection.mewatch.sg/epg?date=${autoDate}`;
+
+  const container = document.getElementById("list");
+  container.innerHTML = "<div>Loading...</div>";
+
+  // mapping axisId ke link stream
+  const streamMap = {
+    "576059": "go:mwseag1",
+    "576060": "go:mwseag2",
+    "576062": "go:mwseag3",
+    "576063": "go:mwseag4"
+  };
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    container.innerHTML = "";
+
+    data.epg.forEach(item => {
+      const start = new Date(item.startDate).toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      const end = new Date(item.endDate).toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      const liveBadge = item.liveIndicator ? `<span class='live'>LIVE</span>` : "";
+
+      const streamURL = streamMap[item.axisId] || "#";
+
+      container.innerHTML += `
+        <div class="card" onclick="window.location='${streamURL}'">
+          <div class="title">${item.eventName} ${liveBadge}</div>
+          <div class="subtitle">${item.channelName}</div>
+
+          <div class="info-row">⏱ ${start} - ${end}</div>
+          <div class="info-row">⚽ Sport: ${item.sport}</div>
+          <div class="info-row">📝 ${item.syp}</div>
+        </div>
+      `;
+    });
+
+  } catch (err) {
+    container.innerHTML = "<div>Error memuat data.</div>";
+  }
+}
+
+loadEPG();
+</script>
+
+
+</body>
+</html>
