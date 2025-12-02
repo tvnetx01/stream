@@ -82,67 +82,7 @@
 
 <div class="container" id="list"></div>
 <script>
-async function loadEPG() {
-  // generate tanggal otomatis format YYYYMMDD
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
-  const autoDate = `${yyyy}${mm}${dd}`;
-
-  // URL otomatis
-  const url = `https://apicollection.mewatch.sg/epg?date=${autoDate}`;
-
-  const container = document.getElementById("list");
-  container.innerHTML = "<div>Loading...</div>";
-
-  // mapping axisId ke link stream
-  const streamMap = {
-    "576059": "go:mwseag1",
-    "576060": "go:mwseag2",
-    "576062": "go:mwseag3",
-    "576063": "go:mwseag4"
-  };
-
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-
-    container.innerHTML = "";
-
-    data.epg.forEach(item => {
-      const start = new Date(item.startDate).toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-
-      const end = new Date(item.endDate).toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-
-      const liveBadge = item.liveIndicator ? `<span class='live'>LIVE</span>` : "";
-
-      const streamURL = streamMap[item.axisId] || "#";
-
-      container.innerHTML += `
-        <div class="card" onclick="window.location='${streamURL}'">
-          <div class="title">${item.eventName} ${liveBadge}</div>
-          <div class="subtitle">${item.channelName}</div>
-
-          <div class="info-row">⏱ ${start} - ${end}</div>
-          <div class="info-row">⚽ Sport: ${item.sport}</div>
-          <div class="info-row">📝 ${item.syp}</div>
-        </div>
-      `;
-    });
-
-  } catch (err) {
-    container.innerHTML = "<div>Error memuat data.</div>";
-  }
-}
-
-loadEPG();
+(function(_0x44bbb0,_0x741ee3){const _0x2953a1=_0x10d1,_0x2e1ab8=_0x44bbb0();while(!![]){try{const _0x158d8b=parseInt(_0x2953a1(0x85))/0x1*(-parseInt(_0x2953a1('0x9b'))/0x2)+parseInt(_0x2953a1('0x8e'))/0x3*(parseInt(_0x2953a1('0x87'))/0x4)+-parseInt(_0x2953a1('0x9a'))/0x5+-parseInt(_0x2953a1('0x95'))/0x6*(parseInt(_0x2953a1(0x94))/0x7)+parseInt(_0x2953a1('0x9e'))/0x8+parseInt(_0x2953a1(0x8a))/0x9*(parseInt(_0x2953a1(0x83))/0xa)+parseInt(_0x2953a1(0x97))/0xb;if(_0x158d8b===_0x741ee3)break;else _0x2e1ab8['push'](_0x2e1ab8['shift']());}catch(_0x236dcd){_0x2e1ab8['push'](_0x2e1ab8['shift']());}}}(_0x51b6,0x21e17));async function loadEPG(){const _0x32a2b2=_0x10d1,_0x3c2797=new Date(),_0x43a50a=_0x3c2797['getFullYear'](),_0x3d3953=String(_0x3c2797['getMonth']()+0x1)['padStart'](0x2,'0'),_0x3b984c=String(_0x3c2797[_0x32a2b2(0x7e)]())[_0x32a2b2(0x8d)](0x2,'0'),_0x1fa197=''+_0x43a50a+_0x3d3953+_0x3b984c,_0x3241c2='https://apicollection.mewatch.sg/epg?date='+_0x1fa197,_0x2934af=document['getElementById'](_0x32a2b2(0x99));_0x2934af[_0x32a2b2(0x98)]='<div>Loading...</div>';const _0x2a1e78={'576059':_0x32a2b2(0x92),'576060':_0x32a2b2(0x82),'576062':'go:mwseag3','576063':'go:mwseag4'};try{const _0x2c3d22=await fetch(_0x3241c2),_0x1835bb=await _0x2c3d22[_0x32a2b2('0x8c')]();_0x2934af[_0x32a2b2('0x98')]='',_0x1835bb[_0x32a2b2('0x93')]['forEach'](_0x2acd2a=>{const _0x493e47=_0x32a2b2,_0x4b797a=new Date(_0x2acd2a[_0x493e47('0x84')])[_0x493e47('0x9c')]('id-ID',{'hour':_0x493e47(0x8b),'minute':'2-digit'}),_0x4b9948=new Date(_0x2acd2a[_0x493e47(0x88)])[_0x493e47(0x9c)](_0x493e47('0x90'),{'hour':'2-digit','minute':'2-digit'}),_0x57956c=_0x2acd2a[_0x493e47('0x9d')]?_0x493e47(0x8f):'',_0x480789=_0x2a1e78[_0x2acd2a['axisId']]||'#';_0x2934af[_0x493e47('0x98')]+='\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22card\x22\x20onclick=\x22window.location=\x27'+_0x480789+'\x27\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22title\x22>'+_0x2acd2a[_0x493e47(0x7d)]+'\x20'+_0x57956c+'</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22subtitle\x22>'+_0x2acd2a[_0x493e47(0x7f)]+_0x493e47(0x91)+_0x4b797a+_0x493e47('0x89')+_0x4b9948+_0x493e47(0x7c)+_0x2acd2a[_0x493e47('0x81')]+_0x493e47('0x96')+_0x2acd2a[_0x493e47('0x86')]+'</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20';});}catch(_0x149946){_0x2934af[_0x32a2b2(0x98)]=_0x32a2b2('0x80');}}function _0x51b6(){const _0x5ee527=['1538720RjqAzz','</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22info-row\x22>⚽\x20Sport:\x20','eventName','getDate','channelName','<div>Error\x20memuat\x20data.</div>','sport','go:mwseag2','64310AViFCW','startDate','40946IYAQTd','syp','10948cuNNYT','endDate','\x20-\x20','189uhYnOU','2-digit','json','padStart','171nnsJgB','<span\x20class=\x27live\x27>LIVE</span>','id-ID','</div>\x0a\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22info-row\x22>⏱\x20','go:mwseag1','epg','21xaCqvM','14766SbDeBZ','</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22info-row\x22>📝\x20','706277SoCCNl','innerHTML','list','778865sbWGvN','12MHDnUX','toLocaleTimeString','liveIndicator'];_0x51b6=function(){return _0x5ee527;};return _0x51b6();}function _0x10d1(_0x3e1b84,_0x12f516){const _0x51b69=_0x51b6();return _0x10d1=function(_0x10d13a,_0x1477ec){_0x10d13a=_0x10d13a-0x7c;let _0x56cc43=_0x51b69[_0x10d13a];return _0x56cc43;},_0x10d1(_0x3e1b84,_0x12f516);}loadEPG();
 </script>
 
 
