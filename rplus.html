@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sea Games Schedule (API)</title>
+  <style>
+    :root{--bg:#0b1020;--card:#0f1724;--muted:#9aa4b2;--accent:#22c55e}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;background:linear-gradient(180deg,#05060a 0%,var(--bg) 100%);color:#e6eef6;padding:24px}
+    .container{max-width:1100px;margin:0 auto}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{font-size:20px;margin:0}
+    .small{color:var(--muted);font-size:13px}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03)}
+    .thumb{position:relative;height:150px;background:#0b1220;display:flex;align-items:flex-end}
+    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .badge{position:absolute;left:10px;top:10px;background:var(--accent);color:#042017;padding:6px 8px;border-radius:999px;font-weight:700;font-size:12px}
+    .card-body{padding:12px}
+    .title{font-size:15px;margin:0 0 8px 0;line-height:1.2}
+    .meta{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:13px}
+    .countdown{font-variant-numeric:tabular-nums;font-weight:700}
+
+    .actions{display:flex;gap:8px;margin-top:10px}
+    .btn{flex:1;padding:8px 10px;border-radius:10px;text-align:center;background:transparent;border:1px solid rgba(255,255,255,0.06);cursor:pointer;color:#e6eef6}
+    .btn.primary{background:var(--accent);color:#042017;border:none}
+
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+
+    @media (max-width:420px){.thumb{height:120px}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Sea Games — Jadwal Live</h1>
+          </div>
+      <div class="small">Zona waktu tampilan: WIB</div>
+    </header>
+
+    <div id="grid" class="grid"></div>
+
+    
+  </div>
+
+<script>
+// --- CONFIG ---
+const API_URL = 'https://rplussc.pisionpluss5a.workers.dev' // no CORS;
+// jika landscape_image di API adalah path relatif, gunakan BASE_IMG
+const BASE_IMG = 'https://static.rctiplus.id/media/500/'; // sesuaikan kalau gambar disimpan di host lain
+
+// mapping known short codes (reverse of earlier mappings). Tambahkan mapping lain bila perlu.
+const GO_MAP = {
+  'rpseag2': 'go:rpseag2',
+  'rpseag3': 'go:rpseag3',
+  'rpseag4': 'go:rpseag4',
+  'rpseag1': 'go:rpseag1'
+};
+
+// --- util ---
+function prettyTimeLeft(s){
+  if(s <= 0) return '00:00:00';
+  const d = Math.floor(s/86400); s%=86400;
+  const h = String(Math.floor(s/3600)).padStart(2,'0');
+  s%=3600;
+  const m = String(Math.floor(s/60)).padStart(2,'0');
+  const sec = String(Math.floor(s%60)).padStart(2,'0');
+  return d>0? `${d}d ${h}:${m}:${sec}` : `${h}:${m}:${sec}`;
+}
+
+function resolveExternalLink(external){
+  if(!external) return null;
+  // if already full URL
+  if(/^https?:\/\//i.test(external)) return external;
+  // if starts with go:code
+  const m = external.match(/^go:(.+)$/i);
+  if(m){
+    const code = m[1];
+    if(GO_MAP[code]) return GO_MAP[code];
+    // fallback: try to open as-is (it's probably a custom scheme)
+    return external;
+  }
+  // otherwise return as-is
+  return external;
+}
+
+// --- render ---
+const grid = document.getElementById('grid');
+let items = [];
+
+async function fetchData(){
+  try{
+    const res = await fetch(API_URL, {cache: 'no-store'});
+    if(!res.ok) throw new Error('API error: ' + res.status);
+    const data = await res.json();
+    items = Array.isArray(data) ? data : [];
+    renderItems();
+  }catch(err){
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:16px;background:#11131a;border-radius:10px;color:#f8d7da">Gagal memuat data: ${err.message}</div>`;
+    console.error(err);
+  }
+}
+
+function renderItems(){
+  grid.innerHTML = '';
+  items.forEach((it, idx) => {
+    const card = document.createElement('article');
+    card.className = 'card';
+
+    const imgUrl = it.landscape_image ? (it.landscape_image.startsWith('http') ? it.landscape_image : (BASE_IMG + it.landscape_image)) : '';
+
+    card.innerHTML = `
+      <div class="thumb">
+        ${it.is_live?'<span class="badge">LIVE</span>':''}
+        <img src="${imgUrl}" alt="${escapeHtml(it.title)}" loading="lazy" onerror="this.style.opacity=0.6">
+      </div>
+      <div class="card-body">
+        <h3 class="title">${escapeHtml(it.title)}</h3>
+        <div class="meta">
+          <div class="small">${escapeHtml(it.live_label || '')}</div>
+          <div class="countdown" id="cd-${idx}">${it.is_countdown? prettyTimeLeft(it.countdown_s || 0) : (it.is_live? 'LIVE' : '')}</div>
+        </div>
+        <div class="actions">
+           <button class="btn primary" onclick="onOpen(${idx})">Buka Stream</button>
+        </div>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+}
+
+function onDetails(i){
+  const it = items[i];
+  alert(`${it.title}\n\nWaktu: ${it.live_label || 'n/a'}\nIs live: ${it.is_live ? 'YES' : 'NO'}\nExternal: ${it.external_link}`);
+}
+
+function onOpen(i){
+  const it = items[i];
+  const resolved = resolveExternalLink(it.external_link);
+  if(!resolved){
+    alert('Tautan streaming tidak tersedia untuk item ini.');
+    return;
+  }
+  // if resolved looks like a custom scheme (go:...), just navigate to it
+  window.open(resolved, '_blank');
+}
+
+// countdown ticker
+function tick(){
+  items.forEach((it, idx) => {
+    if(it.is_countdown){
+      if(typeof it.countdown_s === 'number'){
+        it.countdown_s = Math.max(0, it.countdown_s - 1);
+        const el = document.getElementById(`cd-${idx}`);
+        if(el) el.textContent = prettyTimeLeft(it.countdown_s);
+      } else if(it.live_at){
+        // fallback compute from live_at
+        const now = Math.floor(Date.now()/1000);
+        const left = Math.max(0, it.live_at - now);
+        const el = document.getElementById(`cd-${idx}`);
+        if(el) el.textContent = prettyTimeLeft(left);
+      }
+    }
+  });
+}
+
+// escape helper for text inserted into HTML
+function escapeHtml(s){
+  if(!s) return '';
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c];
+  });
+}
+
+// initial load
+fetchData();
+setInterval(tick,1000);
+// refresh data every 60s to pick up changes
+setInterval(fetchData,60000);
+
+</script>
+</body>
+</html>
