@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streaming Live Liga Nusantara</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #0f0f0f;
+            color: #f1f1f1;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background-color: #ff0000;
+            padding: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo i {
+            font-size: 2.5rem;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+        }
+        
+        .logo span {
+            color: #0f0f0f;
+            font-weight: 800;
+        }
+        
+        .live-badge {
+            background-color: #ff0000;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .live-badge .dot {
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        main {
+            padding: 30px 0;
+        }
+        
+        .hero {
+            background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1551958219-acbc608c6377?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80');
+            background-size: cover;
+            background-position: center;
+            border-radius: 10px;
+            padding: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .hero h2 {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+        }
+        
+        .hero p {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            color: #ccc;
+        }
+        
+        .video-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 900px) {
+            .video-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .main-player {
+            background-color: #1a1a1a;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        .player-placeholder {
+            width: 100%;
+            height: 400px;
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #aaa;
+        }
+        
+        .player-placeholder i {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            color: #ff0000;
+        }
+        
+        .video-info {
+            padding: 20px;
+        }
+        
+        .video-info h3 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+        
+        .video-info p {
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+        
+        .video-list {
+            background-color: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+            overflow-y: auto;
+            max-height: 600px;
+        }
+        
+        .video-list h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ff0000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .video-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #252525;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .video-item:hover {
+            background-color: #333;
+            transform: translateY(-3px);
+        }
+        
+        .video-item.active {
+            background-color: #3a1a1a;
+            border-left: 4px solid #ff0000;
+        }
+        
+        .video-thumbnail {
+            width: 120px;
+            height: 70px;
+            border-radius: 5px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .video-item-info h4 {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .video-item-info p {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        
+        .live-indicator {
+            color: #ff0000;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
+        footer {
+            background-color: #1a1a1a;
+            padding: 25px 0;
+            margin-top: 30px;
+            text-align: center;
+            border-top: 1px solid #333;
+        }
+        
+        footer p {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+        }
+        
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #ff0000;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 40px;
+            background-color: #3a1a1a;
+            border-radius: 10px;
+            color: #ff6b6b;
+        }
+        
+        .error i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .refresh-btn {
+            background-color: #ff0000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            background-color: #cc0000;
+        }
+        
+        /* Responsif untuk mobile */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .hero {
+                padding: 25px 20px;
+            }
+            
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+            
+            .player-placeholder {
+                height: 250px;
+            }
+            
+            .video-item {
+                flex-direction: column;
+            }
+            
+            .video-thumbnail {
+                width: 100%;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fab fa-youtube"></i>
+                    <h1>Streaming <span>Liga Nusantara</span></h1>
+                </div>
+                <div class="live-badge">
+                    <span class="dot"></span>
+                    <span id="live-count">0</span> LIVE
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        <section class="hero">
+            <h2>Liga Nusantara Live Streaming</h2>
+            <p>Nikmati siaran langsung pertandingan Liga Nusantara secara gratis. Pilih pertandingan dari daftar di samping untuk memulai menonton.</p>
+            <p id="update-time">Terakhir diperbarui: -</p>
+        </section>
+        
+        <div class="video-container">
+            <div class="main-player">
+                <div class="player-placeholder" id="player-placeholder">
+                    <i class="fas fa-play-circle"></i>
+                    <p>Pilih pertandingan dari daftar untuk memulai streaming</p>
+                </div>
+                <div id="video-player"></div>
+                <div class="video-info">
+                    <h3 id="current-video-title">Pilih pertandingan untuk menonton</h3>
+                    <p id="current-video-desc">Klik pada salah satu pertandingan di daftar untuk memutar siaran langsung.</p>
+                </div>
+            </div>
+            
+            <div class="video-list">
+                <h3><i class="fas fa-list"></i> Daftar Pertandingan Live</h3>
+                <div id="video-list-container">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Memuat daftar pertandingan...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <p>Website streaming tidak resmi Liga Nusantara. Hak cipta siaran milik masing-masing pemilik konten.</p>
+            <p>Data diambil dari API YouTube. Terakhir diperbarui: <span id="footer-time">-</span></p>
+        </div>
+    </footer>
+    
+    <script>
+        // API endpoint
+        const API_URL = 'https://ythls.pisionpluss5a.workers.dev/';
+        
+        // Elemen DOM
+        const videoListContainer = document.getElementById('video-list-container');
+        const playerPlaceholder = document.getElementById('player-placeholder');
+        const videoPlayer = document.getElementById('video-player');
+        const currentVideoTitle = document.getElementById('current-video-title');
+        const currentVideoDesc = document.getElementById('current-video-desc');
+        const liveCountElement = document.getElementById('live-count');
+        const updateTimeElement = document.getElementById('update-time');
+        const footerTimeElement = document.getElementById('footer-time');
+        
+        // State
+        let currentVideoId = null;
+        let player = null;
+        
+        // Format waktu
+        function formatTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            return now.toLocaleDateString('id-ID', options);
+        }
+        
+        // Load YouTube IFrame API
+        function loadYouTubeAPI() {
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+        
+        // Fungsi callback untuk YouTube API
+        window.onYouTubeIframeAPIReady = function() {
+            console.log('YouTube API siap');
+            // Player akan dibuat saat video dipilih
+        };
+        
+        // Buat player YouTube
+        function createPlayer(videoId) {
+            if (player) {
+                player.destroy();
+            }
+            
+            player = new YT.Player('video-player', {
+                height: '400',
+                width: '100%',
+                videoId: videoId,
+                playerVars: {
+                    'autoplay': 1,
+                    'modestbranding': 1,
+                    'rel': 0,
+                    'showinfo': 0
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+            
+            // Sembunyikan placeholder
+            playerPlaceholder.style.display = 'none';
+            videoPlayer.style.display = 'block';
+        }
+        
+        function onPlayerReady(event) {
+            console.log('Player siap');
+        }
+        
+        function onPlayerStateChange(event) {
+            // Bisa ditambahkan logika berdasarkan state change jika diperlukan
+        }
+        
+        // Ambil data dari API
+        async function fetchLiveVideos() {
+            try {
+                // Update waktu
+                const currentTime = formatTime();
+                updateTimeElement.textContent = `Terakhir diperbarui: ${currentTime}`;
+                footerTimeElement.textContent = currentTime;
+                
+                // Tampilkan loading
+                videoListContainer.innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Memuat daftar pertandingan...</p>
+                    </div>
+                `;
+                
+                // Fetch data dari API
+                const response = await fetch(API_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Periksa status API
+                if (!data.status) {
+                    throw new Error('API mengembalikan status false');
+                }
+                
+                // Update jumlah live
+                liveCountElement.textContent = data.live_total;
+                
+                // Render daftar video
+                renderVideoList(data.items);
+                
+                // Jika ada video, pilih video pertama secara otomatis
+                if (data.items.length > 0 && !currentVideoId) {
+                    selectVideo(data.items[0]);
+                }
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                videoListContainer.innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Gagal memuat data</h3>
+                        <p>${error.message}</p>
+                        <button class="refresh-btn" onclick="fetchLiveVideos()">
+                            <i class="fas fa-redo"></i> Coba Lagi
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Render daftar video
+        function renderVideoList(videos) {
+            if (videos.length === 0) {
+                videoListContainer.innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-video-slash"></i>
+                        <h3>Tidak ada siaran live saat ini</h3>
+                        <p>Silakan cek kembali nanti.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let videoListHTML = '';
+            
+            videos.forEach((video, index) => {
+                const isActive = currentVideoId === video.videoId ? 'active' : '';
+                videoListHTML += `
+                    <div class="video-item ${isActive}" data-video-id="${video.videoId}" onclick="selectVideo(${JSON.stringify(video).replace(/"/g, '&quot;')})">
+                        <div class="video-thumbnail">
+                            <img src="${video.thumbnail}" alt="${video.title}">
+                        </div>
+                        <div class="video-item-info">
+                            <h4>${video.title}</h4>
+                            <div class="live-indicator">
+                                <span class="dot"></span>
+                                LIVE
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            videoListContainer.innerHTML = videoListHTML;
+        }
+        
+        // Pilih video untuk diputar
+        function selectVideo(video) {
+            currentVideoId = video.videoId;
+            
+            // Update UI daftar video
+            document.querySelectorAll('.video-item').forEach(item => {
+                if (item.getAttribute('data-video-id') === video.videoId) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            
+            // Update info video
+            currentVideoTitle.textContent = video.title;
+            currentVideoDesc.textContent = `Siaran langsung Liga Nusantara. Video ID: ${video.videoId}`;
+            
+            // Buat atau perbarui player
+            if (typeof YT !== 'undefined' && YT.Player) {
+                createPlayer(video.videoId);
+            } else {
+                // Jika YouTube API belum siap, tampilkan placeholder dengan link
+                playerPlaceholder.innerHTML = `
+                    <i class="fas fa-external-link-alt"></i>
+                    <p>YouTube Player sedang dimuat...</p>
+                    <p>Atau <a href="${video.url}" target="_blank" style="color: #ff0000; text-decoration: underline;">klik di sini</a> untuk menonton di YouTube.</p>
+                `;
+                playerPlaceholder.style.display = 'flex';
+                videoPlayer.style.display = 'none';
+                
+                // Coba load YouTube API jika belum
+                loadYouTubeAPI();
+            }
+        }
+        
+        // Inisialisasi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load YouTube API
+            loadYouTubeAPI();
+            
+            // Fetch data dari API
+            fetchLiveVideos();
+            
+            // Refresh data setiap 60 detik
+            setInterval(fetchLiveVideos, 60000);
+        });
+    </script>
+</body>
+</html>
